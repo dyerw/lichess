@@ -1,6 +1,8 @@
 package main
 
-import "github.com/lesismal/nbio/nbhttp/websocket"
+import (
+	"github.com/lesismal/nbio/nbhttp/websocket"
+)
 
 type LobbyManager struct {
 }
@@ -11,12 +13,10 @@ func NewLobbyManager() *LobbyManager {
 
 func (lm *LobbyManager) NewConnection(conn *websocket.Conn) {
 	conn.OnMessage(func(c *websocket.Conn, mt websocket.MessageType, b []byte) {
-		println("New message in lobby manager")
-		message, err := ParseWebsocketMessage(b)
+		message, err := UnmarshalMessage(b)
 		if err != nil {
-			println("PARSE ERROR")
+			println(err.Error())
 		}
-		println(message)
 		switch v := message.(type) {
 		case CreateLobby:
 			println("CreateLobby")

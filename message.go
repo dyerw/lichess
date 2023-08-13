@@ -1,58 +1,52 @@
 package main
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"errors"
+)
 
 type Message interface {
 	isMessage()
-	hasBody() bool
 }
 
 type CreateLobby struct{}
 
-func (cl CreateLobby) isMessage()    {}
-func (cl CreateLobby) hasBody() bool { return false }
+func (cl CreateLobby) isMessage() {}
 
 type LobbyCreated struct {
 	id string
 }
 
-func (lc LobbyCreated) isMessage()    {}
-func (lc LobbyCreated) hasBody() bool { return true }
+func (lc LobbyCreated) isMessage() {}
 
 type JoinLobby struct {
 	id string
 }
 
-func (jl JoinLobby) isMessage()    {}
-func (jl JoinLobby) hasBody() bool { return true }
+func (jl JoinLobby) isMessage() {}
 
 type WebsocketMessage struct {
 	MessageType string
 	Payload     json.RawMessage
 }
 
-func ParseWebsocketMessage(b []byte) (Message, error) {
+func UnmarshalMessage(b []byte) (Message, error) {
 	var websocketMessage WebsocketMessage
 	err := json.Unmarshal(b, &websocketMessage)
 	if err != nil {
-		println("OHHHH NOOO")
+		return nil, err
 	}
 
-	var payload Message
 	switch websocketMessage.MessageType {
 	case "CreateLobby":
-		payload = new(CreateLobby)
+		var createLobby CreateLobby
+		json.Unmarshal(websocketMessage.Payload, &createLobby)
+		return createLobby, nil
 	case "JoinLobby":
-		payload = new(JoinLobby)
+		var joinLobby JoinLobby
+		json.Unmarshal(websocketMessage.Payload, &joinLobby)
+		return joinLobby, nil
 	default:
-		println("NOT MESSAGE")
+		return nil, errors.New("Invalid MessageType")
 	}
-	if !payload.hasBody() {
-		return payload, nil
-	}
-	payload_err := json.Unmarshal(websocketMessage.Payload, payload)
-	if payload_err != nil {
-		println("PAYLOAD ERROR")
-	}
-	return payload, nil
 }
