@@ -5,6 +5,10 @@ import (
 	"errors"
 )
 
+/*
+We should probably distinguish between server->client and client->server message types.
+i.e. LobbyCreated is not a valid message client->server
+*/
 type Message interface {
 	isMessage()
 }
